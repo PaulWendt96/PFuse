@@ -1,0 +1,46 @@
+FUSE: File system in user space.
+
+FUSE lets us write userland code that is used to implement a 
+file system. This can serve many purposes. For instance, you
+could write some userland code to present the contents of a ZIP file
+as a file system that the user can navigate.
+
+pyfuse allows us to implement a file system in python.
+
+relevant reading:
+https://www.stavros.io/posts/python-fuse-filesystem/
+  - this guy wrote a pass through file system that implements 
+    a rudimentary FUSE file system
+  - he mentioned that the end goal is to create an encrypted file system (?)
+  - smart guy, good code, worth a read
+https://thepythoncorner.com/posts/2017-02-28-writing-a-fuse-filesystem-in-python/
+  - this guy wrote a file system for a work problem
+    - the issue: storing multiple sets of file by age (one set being archived and
+      older, another set being newer)
+    - the goal was to host newer files on a faster system and older ones on a 
+      slower system
+    - FUSE provides a bridge so that both the old and new file systems can 
+      be presented in the same way to the client (client sees no difference
+      in presentation, but from a technical perspective files are being
+      served on two totally different sets of file systems)
+  - practical problem with simple answer, worth a read
+https://www.youtube.com/watch?v=C2FuPxyip2A
+  - video from India PyCon 2015 regarding FUSE
+  - gives some historic background and implements a toy file system
+
+https://en.wikipedia.org/wiki/Filesystem_in_Userspace
+  - for the high level details 
+https://github.com/libfuse/libfuse/blob/master/include/fuse.h
+  - for the nitty gritty details. the fuse.h file includes a
+    lot of the system data structures that need to be kept in mind when
+    using FUSE
+
+https://blog.aqwari.net/9p/
+  - only tangentially related. the author's idea is to implement the 9P
+    protocol. as a first order of business, he decides to intercept the
+    actual 9P messages sent to a pseudo-FS server. he uses u9fs to host
+    a simple plan9 file server. he then uses 9pfuse on the other end to 
+    intercept reads/writes/etc. and delegate them to u9fs. 9pfuse connects
+    to u9fs via tcp, so he uses tcp sniffer to view the actual messages sent
+    
+   

@@ -1,0 +1,74 @@
+logging:
+
+   __getattribute__ raises a recursion error, even if we use object.__getattribute__(self, name)
+   to avoid it
+
+   decorators are ok, but producing results is a little indelicate 
+
+
+WEIRD CLASSES:
+- if you want to get all of the attributes defined in the class
+  (but not superclasses), you can use:
+
+  import inspect
+  class Foo(object):
+      def __init__(self): pass
+      def f1(self): return 3
+      def f2(self): return 1
+  
+  class Bar(Foo):
+      def __init__(self): Foo.__init__(self)
+      def g1(self): return self.f1() + self.f2()
+      def g2(self): return self.f1() - self.f2()
+
+  bar_attrs = [m for m in Bar.__dict__.values() if inspect.isfunction(m)] # g1, g2
+  print(bar_attrs)
+  foo_attrs = [m for m in Foo.__dict__.values() if inspect.isfunction(m)] # f1, f2
+  print(foo_attrs)
+
+  with Bar replaced with the class you're interested in. Bar's __dict__ will store
+  a reference to the 
+
+- wait, there's more. let's say that we have the following classes
+  defined:
+
+  #! NOTE -- if you're in VIM, you can select this text in visual 
+  #          mode and do '! python unindent.py | python3'
+  #
+  #          this unindents the text below and runs it through python
+  #          so you can see the output. you can undo this with 'u'
+
+  class A():
+    def __init__(self, v1):
+      self.v1 = v1
+    def x(self):
+      print('x() called')
+
+  class B(A):
+    def __init__(self, v1, v2):
+       super().__init__(v1)
+       self.v2 = v2
+    def y(self):
+      print('y() called')
+
+  instance = B(10, 20)
+  print(hasattr(B.y, '__self__'))         # FALSE
+  print(hasattr(instance.y, '__self__'))  # TRUE
+  print(hasattr(B(10, 20).y, '__self__')) # TRUE
+
+  # difference between 'y' in B and 'y' in B(*args)
+  # is that the instance has __self__ bound
+  
+  # this means that we can manipulate class methods on the 
+  # fly, using objects that only contain the attributes we
+  # want/need
+  #print(B.y())      # Won't work -- y expects __self__ is an argument
+  B.y(None)  # This works -- __self__ is provided as None, and method y doesn't look up any arguments from the object
+
+  # let's add a method to B
+  B.fly = lambda self, message: print(message.format(v1=self.v1, v2=self.v2))
+
+  from collections import namedtuple
+  ZZZ = namedtuple('ZZZ', 'v1 v2')
+  B.fly(ZZZ(100, 200), 'hey! my v1 is {v1} and my v2 is {v2}')
+
